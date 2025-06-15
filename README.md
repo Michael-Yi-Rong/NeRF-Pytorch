@@ -48,7 +48,7 @@ Use ffmpeg & COLMAP to make your dataset and put into `./data/nerf_llff_data/col
 
 To train a `bird` NeRF:
 ```
-CUDA_VISIBLE_DEVICES=0 python run_nerf.py --config configs/colmap_bird.txt
+CUDA_VISIBLE_DEVICES=0 python run_nerf_with_tensorboard.py --config configs/colmap_bird.txt
 ```
 After training for 100k iterations (~4 hours on a single 2080 Ti), you can find the following video at `logs/lego_test/lego_test_spiral_100000_rgb.mp4`.
 
@@ -58,7 +58,7 @@ After training for 100k iterations (~4 hours on a single 2080 Ti), you can find 
 
 To train a low-res `fern` NeRF:
 ```
-CUDA_VISIBLE_DEVICES=0 python run_nerf.py --config configs/fern.txt
+CUDA_VISIBLE_DEVICES=0 python run_nerf_with_tensorboard.py --config configs/fern.txt
 ```
 After training for 200k iterations (~16 hours on a single 3090), you can find the following video at `logs/colmap_test/*.mp4`
 
@@ -88,7 +88,7 @@ To play with other scenes presented in the paper, download the data [here](https
 To train NeRF on different datasets: 
 
 ```
-CUDA_VISIBLE_DEVICES=0 python run_nerf.py --config configs/{DATASET}.txt
+CUDA_VISIBLE_DEVICES=0 python run_nerf_with_tensorboard.py --config configs/{DATASET}.txt
 ```
 
 replace `{DATASET}` with `trex` | `horns` | `flower` | `fortress` | `lego` | etc.
@@ -98,7 +98,7 @@ replace `{DATASET}` with `trex` | `horns` | `flower` | `fortress` | `lego` | etc
 To test NeRF trained on different datasets: 
 
 ```
-CUDA_VISIBLE_DEVICES=0 python run_nerf.py --config configs/{DATASET}.txt --render_only
+CUDA_VISIBLE_DEVICES=0 python run_nerf_with_tensorboard.py --config configs/{DATASET}.txt --render_only
 ```
 
 replace `{DATASET}` with `trex` | `horns` | `flower` | `fortress` | `lego` | etc.
