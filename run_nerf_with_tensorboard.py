@@ -20,6 +20,7 @@ from load_LINEMOD import load_LINEMOD_data
 
 from torch.utils.tensorboard import SummaryWriter
 # import tensorflow as tf
+import cv2
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -720,6 +721,10 @@ def train():
                 valid_test_images = images[i_test]
                 valid_test_poses = poses[i_test]
 
+                # 创建 TensorBoard writer
+                tb_log_dir = os.path.join(basedir, expname, 'tensorboard_test')
+                tb_writer = SummaryWriter(tb_log_dir)
+
                 # 调用render_path并获取PSNR
                 rgbs, _, psnrs = render_path(
                     torch.Tensor(valid_test_poses).to(device),
@@ -734,6 +739,15 @@ def train():
                 mean_psnr = np.mean(psnrs) if psnrs else 0
                 print(f"测试集大小: {len(valid_test_images)} 张图像")
                 print(f"平均 PSNR: {mean_psnr:.2f} dB")
+
+                # 记录到 TensorBoard
+                tb_writer.add_scalar('Test/Mean_PSNR', mean_psnr, start)
+                for i, psnr_val in enumerate(psnrs):
+                    tb_writer.add_scalar('Test/Per_Image_PSNR', psnr_val, i)
+
+                # 关闭 TensorBoard writer
+                tb_writer.close()
+                print(f"PSNR 结果已记录到 TensorBoard，日志目录: {tb_log_dir}")
 
                 # 保存PSNR结果到文件
                 psnr_file = os.path.join(testsavedir, 'psnrs.txt')
