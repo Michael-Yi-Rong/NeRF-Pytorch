@@ -675,6 +675,33 @@ def train():
             if args.render_test:
                 # render_test switches to test poses
                 images = images[i_test]
+                testsavedir = os.path.join(basedir, expname, f'render_test_{start:06d}')
+                os.makedirs(testsavedir, exist_ok=True)
+
+                rgbs, _, psnrs = render_path(
+                    torch.Tensor(poses[i_test]).to(device),
+                    hwf, K, args.chunk,
+                    render_kwargs_test,
+                    gt_imgs=images[i_test] if args.render_test else None,
+                    savedir=testsavedir,
+                    render_factor=args.render_factor
+                )
+
+                # 计算并保存PSNR结果
+                mean_psnr = np.mean(psnrs)
+                print(f"Mean PSNR: {mean_psnr:.2f} dB")
+
+                # 保存PSNR结果到文件
+                psnr_file = os.path.join(testsavedir, 'psnrs.txt')
+                with open(psnr_file, 'w') as f:
+                    f.write(f"Mean PSNR: {mean_psnr:.2f} dB\n")
+                    for i, val in enumerate(psnrs):
+                        f.write(f"Image {i}: {val:.2f} dB\n")
+
+                print(f"Saved PSNR results to {psnr_file}")
+
+                # 保存视频
+                imageio.mimwrite(os.path.join(testsavedir, 'video.mp4'), to8b(rgbs), fps=30, quality=8)
             else:
                 # Default is smoother render_poses path
                 images = None
