@@ -48,7 +48,7 @@ Use ffmpeg & COLMAP to make your dataset and put into `./data/nerf_llff_data/col
 
 To train a `bird` NeRF:
 ```
-python run_nerf.py --config configs/colmap_bird.txt
+CUDA_VISIBLE_DEVICES=0 python run_nerf.py --config configs/colmap_bird.txt
 ```
 After training for 100k iterations (~4 hours on a single 2080 Ti), you can find the following video at `logs/lego_test/lego_test_spiral_100000_rgb.mp4`.
 
@@ -58,7 +58,7 @@ After training for 100k iterations (~4 hours on a single 2080 Ti), you can find 
 
 To train a low-res `fern` NeRF:
 ```
-python run_nerf.py --config configs/fern.txt
+CUDA_VISIBLE_DEVICES=0 python run_nerf.py --config configs/fern.txt
 ```
 After training for 200k iterations (~16 hours on a single 3090), you can find the following video at `logs/colmap_test/*.mp4`
 
