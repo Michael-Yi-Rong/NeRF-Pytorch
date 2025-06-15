@@ -20,6 +20,7 @@ from load_LINEMOD import load_LINEMOD_data
 
 from torch.utils.tensorboard import SummaryWriter
 # import tensorflow as tf
+from skimage.metrics import peak_signal_noise_ratio as psnr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(0)
@@ -148,6 +149,8 @@ def render_path(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedi
 
     rgbs = []
     disps = []
+
+    psnrs = []
 
     t = time.time()
     for i, c2w in enumerate(tqdm(render_poses)):
@@ -673,35 +676,78 @@ def train():
         print('RENDER ONLY')
         with torch.no_grad():
             if args.render_test:
-                # render_test switches to test poses
-                images = images[i_test]
+                # # render_test switches to test poses
+                # images = images[i_test]
+                # testsavedir = os.path.join(basedir, expname, f'render_test_{start:06d}')
+                # os.makedirs(testsavedir, exist_ok=True)
+                #
+                # rgbs, _, psnrs = render_path(
+                #     torch.Tensor(poses[i_test]).to(device),
+                #     hwf, K, args.chunk,
+                #     render_kwargs_test,
+                #     gt_imgs=images[i_test] if args.render_test else None,
+                #     savedir=testsavedir,
+                #     render_factor=args.render_factor
+                # )
+                #
+                # # 计算并保存PSNR结果
+                # mean_psnr = np.mean(psnrs)
+                # print(f"Mean PSNR: {mean_psnr:.2f} dB")
+                #
+                # # 保存PSNR结果到文件
+                # psnr_file = os.path.join(testsavedir, 'psnrs.txt')
+                # with open(psnr_file, 'w') as f:
+                #     f.write(f"Mean PSNR: {mean_psnr:.2f} dB\n")
+                #     for i, val in enumerate(psnrs):
+                #         f.write(f"Image {i}: {val:.2f} dB\n")
+                #
+                # print(f"Saved PSNR results to {psnr_file}")
+                #
+                # # 保存视频
+                # imageio.mimwrite(os.path.join(testsavedir, 'video.mp4'), to8b(rgbs), fps=30, quality=8)
+                # 渲染测试集
+                # 添加边界检查
+                if max(i_test) >= images.shape[0]:
+                    print(f"警告: 测试索引超出范围 (最大索引 {max(i_test)}，但只有 {images.shape[0]} 张图像)")
+                    # 修正测试索引
+                    i_test = [idx for idx in i_test if idx < images.shape[0]]
+                    print(f"修正后的测试索引: {i_test}")
+
                 testsavedir = os.path.join(basedir, expname, f'render_test_{start:06d}')
                 os.makedirs(testsavedir, exist_ok=True)
 
+                # 确保只使用有效的测试图像
+                valid_test_images = images[i_test]
+                valid_test_poses = poses[i_test]
+
+                # 调用render_path并获取PSNR
                 rgbs, _, psnrs = render_path(
-                    torch.Tensor(poses[i_test]).to(device),
+                    torch.Tensor(valid_test_poses).to(device),
                     hwf, K, args.chunk,
                     render_kwargs_test,
-                    gt_imgs=images[i_test] if args.render_test else None,
+                    gt_imgs=valid_test_images,
                     savedir=testsavedir,
                     render_factor=args.render_factor
                 )
 
                 # 计算并保存PSNR结果
-                mean_psnr = np.mean(psnrs)
-                print(f"Mean PSNR: {mean_psnr:.2f} dB")
+                mean_psnr = np.mean(psnrs) if psnrs else 0
+                print(f"测试集大小: {len(valid_test_images)} 张图像")
+                print(f"平均 PSNR: {mean_psnr:.2f} dB")
 
                 # 保存PSNR结果到文件
                 psnr_file = os.path.join(testsavedir, 'psnrs.txt')
                 with open(psnr_file, 'w') as f:
-                    f.write(f"Mean PSNR: {mean_psnr:.2f} dB\n")
+                    f.write(f"测试图像数量: {len(psnrs)}\n")
+                    f.write(f"平均 PSNR: {mean_psnr:.2f} dB\n")
                     for i, val in enumerate(psnrs):
-                        f.write(f"Image {i}: {val:.2f} dB\n")
+                        f.write(f"图像 {i_test[i]}: {val:.2f} dB\n")
 
-                print(f"Saved PSNR results to {psnr_file}")
+                print(f"PSNR 结果已保存至 {psnr_file}")
 
                 # 保存视频
-                imageio.mimwrite(os.path.join(testsavedir, 'video.mp4'), to8b(rgbs), fps=30, quality=8)
+                if rgbs:
+                    imageio.mimwrite(os.path.join(testsavedir, 'video.mp4'), to8b(rgbs), fps=30, quality=8)
             else:
                 # Default is smoother render_poses path
                 images = None
