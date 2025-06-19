@@ -122,6 +122,17 @@ Tests that ensure the results of all functions and training loop match the offic
 git checkout reproduce
 py.test
 ```
+## Result Samples
+
+
+https://github.com/user-attachments/assets/934f68a0-a953-4c96-a655-d87371e4dcc7
+
+
+https://github.com/user-attachments/assets/c6ccf951-05eb-474d-981d-89247a1e8d53
+
+
+![output](https://github.com/user-attachments/assets/245062fd-d35d-463d-9c98-6b71e3d9ff4a)
+
 
 ## Method
 
